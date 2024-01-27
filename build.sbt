@@ -4,15 +4,15 @@ ThisBuild / scalaVersion := "2.13.12"
 
 lazy val root = (project in file("."))
   .settings(
-    name := "practice1sem_code"
+    name := "practice1sem_code",
+    fork := true,
   )
 
+enablePlugins(JavaAppPackaging)
 
-libraryDependencies  ++= Seq(
-  // Last stable release
+libraryDependencies ++= Seq(
+  "org.typelevel" %% "cats-core" % "2.9.0",
+  "org.typelevel" %% "cats-effect" % "3.4.8",
   "org.scalanlp" %% "breeze" % "2.1.0",
-
-  // The visualization library is distributed separately as well.
-  // It depends on LGPL code
-  "org.scalanlp" %% "breeze-viz" % "2.1.0"
+  "org.scalanlp" %% "breeze-viz" % "2.1.0",
 )
