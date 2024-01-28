@@ -2,7 +2,7 @@ package method
 
 import breeze.integrate.trapezoid
 import breeze.linalg.{DenseMatrix, DenseVector, inv}
-import method.basisfunctions.BasisFunctions
+import method.basisfunctions.{BasisFunctions, PolynomialBasis}
 import model.{ApproximateModel, OriginalModel}
 import parameters.AllParameters
 import parameters.MethodParameters._
@@ -11,7 +11,7 @@ import scala.math.pow
 
 class MethodImplementation(
     paramteres: AllParameters,
-    basisFunctions: BasisFunctions,
+    val basisFunctions: PolynomialBasis,
     approximateModel: ApproximateModel,
     val originalModel: OriginalModel,
 ) {
@@ -58,7 +58,10 @@ class MethodImplementation(
 }
 
 object MethodImplementation {
-  def make(parameters: AllParameters, basisFunctionsFactory: BasisFunctions.Factory) =
+  def make(
+      parameters: AllParameters,
+      basisFunctionsFactory: BasisFunctions.Factory[PolynomialBasis],
+  ) =
     new MethodImplementation(
       paramteres = parameters,
       basisFunctions = basisFunctionsFactory.make(parameters.methodParameters),

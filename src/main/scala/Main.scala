@@ -3,7 +3,7 @@ import breeze.plot._
 import cats.effect.{IO, IOApp}
 import cats.syntax.all._
 import method.MethodImplementation
-import method.basisfunctions.{BasisFunctions, LegendrePolynomials, Powers}
+import method.basisfunctions._
 import parameters.AllParameters
 import spire.implicits._
 import spire.math.Polynomial
@@ -17,7 +17,7 @@ object Main extends IOApp.Simple {
   ): IO[AllParameters] =
     IO.readLine.flatMap { inputUntrimmed =>
       val input = inputUntrimmed.trim
-      
+
       if (input.toLowerCase == "next") parameters.pure[IO]
       else {
         lazy val printErrorMessageAndRetry = IO.println(
@@ -81,7 +81,7 @@ object Main extends IOApp.Simple {
       }
     }
 
-  private def chooseBasisFunctions: IO[BasisFunctions.Factory] =
+  private def chooseBasisFunctions: IO[BasisFunctions.Factory[PolynomialBasis]] =
     IO.readLine.map(_.trim.toLowerCase).flatMap {
       case "legendre" => LegendrePolynomials.pure[IO]
       case "normal"   => Powers.pure[IO]
@@ -112,14 +112,12 @@ object Main extends IOApp.Simple {
           cIO.flatMap(c =>
             IO.println(
               s"На шаге $stepNumber значение многочлена t(s) = ${
-                val polynomialString =
-                  Polynomial
-                    .dense(
-                      c.data.map(
-                        BigDecimal(_).setScale(4, BigDecimal.RoundingMode.HALF_UP),
-                      ),
-                    )
-                    .toString()
+                val polynomial = c.toArray
+                  .zip(methodImplementation.basisFunctions.polynomials.toArray)
+                  .foldLeft(Polynomial.zero[Double]) { case (resultPoly, (coef, basisPoly)) =>
+                    resultPoly + Polynomial.constant(coef) * basisPoly
+                  }
+                val polynomialString = polynomial.toString()
                 polynomialString.slice(1, polynomialString.length - 1).replace('x', 's')
               }",
             ) >> IO.delay(c - methodImplementation.calculateStep(c)),
