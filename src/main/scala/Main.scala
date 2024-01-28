@@ -92,7 +92,7 @@ object Main extends IOApp.Simple {
   override def run: IO[Unit] = {
     val defaultParameters = AllParameters.defaultParameters
 
-    for {
+    def start: IO[Unit] = for {
       _ <- IO.println("Параметры по умолчанию:")
       _ <- IO.println(defaultParameters)
       _ <- IO.println(
@@ -140,8 +140,12 @@ object Main extends IOApp.Simple {
           y = methodImplementation.vectorA(c),
           name = "beta_2 approximation",
         )
-
       }
+      _ <- IO.println("Работа алгоритма завершена. Наберите 'restart', чтобы запустить приложение " +
+        "снова, любой другой (в том числе пустой) ввод приведёт к выходу из приложения.")
+      input <- IO.readLine
+      _ <- if (input.trim.toLowerCase == "restart") start else IO.unit
     } yield ()
+    start
   }
 }
