@@ -117,7 +117,10 @@ object Main extends IOApp.Simple {
                   .foldLeft(Polynomial.zero[Double]) { case (resultPoly, (coef, basisPoly)) =>
                     resultPoly + Polynomial.constant(coef) * basisPoly
                   }
-                val polynomialString = polynomial.toString()
+                val polynomialString =
+                  polynomial
+                    .map(BigDecimal(_).setScale(4, BigDecimal.RoundingMode.HALF_UP))
+                      .toString()
                 polynomialString.slice(1, polynomialString.length - 1).replace('x', 's')
               }",
             ) >> IO.delay(c - methodImplementation.calculateStep(c)),

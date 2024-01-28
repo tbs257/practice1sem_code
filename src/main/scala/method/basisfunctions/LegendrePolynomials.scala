@@ -3,11 +3,17 @@ package method.basisfunctions
 import breeze.linalg.{DenseMatrix, DenseVector}
 import org.apache.commons.math3.util.CombinatoricsUtils.binomialCoefficientDouble
 import parameters.MethodParameters
+import parameters.MethodParameters._
 import spire.implicits._
 import spire.math.Polynomial
 
 class LegendrePolynomials(methodParameters: MethodParameters) extends PolynomialBasis {
   import methodParameters.basisSize
+
+  override def phi(s: Double): DenseVector[Double] = {
+    val x = 2 * (s - s0) / (S - s0) - 1
+    super.phi(x)
+  }
 
   override val matrixB: DenseMatrix[Double] = DenseMatrix.tabulate(basisSize, basisSize) { (i, j) =>
     if (i == j) 0.86 / (2 * i + 1) else 0
