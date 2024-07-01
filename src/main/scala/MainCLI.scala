@@ -8,7 +8,7 @@ import parameters.AllParameters
 import spire.implicits._
 import spire.math.Polynomial
 
-object Main extends IOApp.Simple {
+object MainCLI extends IOApp.Simple {
 
   private lazy val parameterUpdateRegex = "(\\w+)\\s*=\\s*(.*)".r
 
