@@ -1,27 +1,25 @@
 package method
 
 import breeze.integrate.trapezoid
-import breeze.linalg.{DenseMatrix, DenseVector, inv}
+import breeze.linalg.{inv, DenseMatrix, DenseVector}
 import method.basisfunctions.{BasisFunctions, PolynomialBasis}
 import model.{ApproximateModel, OriginalModel}
 import parameters.AllParameters
 import parameters.MethodParameters._
 
-import scala.math.pow
+import scala.math._
 
 class MethodImplementation(
-    paramteres: AllParameters,
-    val basisFunctions: PolynomialBasis,
-    approximateModel: ApproximateModel,
-    val originalModel: OriginalModel,
+  paramteres: AllParameters,
+  val basisFunctions: PolynomialBasis,
+  approximateModel: ApproximateModel,
+  val originalModel: OriginalModel,
 ) {
-  import paramteres.modelParameters._
-  import paramteres.methodParameters._
-  import paramteres.vectorR
-
   import approximateModel._
-
   import basisFunctions._
+  import paramteres._
+  import paramteres.methodParameters._
+  import paramteres.modelParameters._
 
   def calculateStep(c: DenseVector[Double]): DenseVector[Double] =
     inv(jacobiMatrix(c).t * jacobiMatrix(c) + alpha * matrixB) *
@@ -53,14 +51,52 @@ class MethodImplementation(
       )
     }
 
-  def vectorA(c: DenseVector[Double]): DenseVector[Double] =
-    vectorR.map(r => trapezoid(s => functionF(functionT(c, s), r), s0, S, integrationNodes))
+  def vectorA(c: DenseVector[Double], scale: Int = 1): DenseVector[Double] =
+    vectorRScaled(scale).map(beta2(c, _))
+
+  def beta3Show(c: DenseVector[Double], scale: Int = 1): DenseVector[Double] =
+    vectorRScaled(scale).map(beta3(c, _))
+
+  def g(c: DenseVector[Double], scale: Int = 1): DenseVector[Double] =
+    vectorRScaled(scale).map(r => beta2(c, r) + beta3(c, r))
+
+  private def beta3(c: DenseVector[Double], r: Double) =
+    2 * Pi * beta2(c, r) *
+      trapezoid(
+        f = s23 =>
+          trapezoid(
+            f = s13 => {
+              val t = functionT(c, s13) // TODO: or s23?
+              trapezoid(
+                f = r13 =>
+                  r13 * r13 * functionF(s13, r) * (trapezoid(
+                    f = q => functionF(s23, sqrt(r13 * r13 + r * r - 2 * r * r13 * q) - 1),
+                    start = -1,
+                    end = 1,
+                    nodes = integrationNodes,
+                  ) - 2),
+                start = 0,
+                end = rcrit(t),
+                nodes = integrationNodes,
+              )
+            },
+            start = s0,
+            end = S,
+            nodes = integrationNodes,
+          ),
+        start = s0,
+        end = S,
+        nodes = integrationNodes,
+      )
+
+  private def beta2(c: DenseVector[Double], r: Double) =
+    trapezoid(s => functionF(functionT(c, s), r), s0, S, integrationNodes)
 }
 
 object MethodImplementation {
   def make(
-      parameters: AllParameters,
-      basisFunctionsFactory: BasisFunctions.Factory[PolynomialBasis],
+    parameters: AllParameters,
+    basisFunctionsFactory: BasisFunctions.Factory[PolynomialBasis],
   ) =
     new MethodImplementation(
       paramteres = parameters,

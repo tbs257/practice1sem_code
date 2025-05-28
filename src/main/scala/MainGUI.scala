@@ -36,14 +36,31 @@ object MainGUI extends SimpleSwingApplication {
     normal.selected = true
     val _                     = new ButtonGroup(legendre, normal)
 
-    val plot0 = new Plot
-    plot0.legend = true
+    val plotSize = new Dimension(300, 300)
 
-    val plotPanel = new Panel {
-      override lazy val peer = plot0.panel
-      preferredSize = new Dimension(500, 500)
+    val plot1 = new Plot
+    plot1.legend = true
+
+    val plot1Panel = new Panel {
+      override lazy val peer = plot1.panel
+      preferredSize = plotSize
     }
 
+    val plot2 = new Plot
+    plot2.legend = true
+
+    val plot2Panel = new Panel {
+      override lazy val peer = plot2.panel
+      preferredSize = plotSize
+    }
+
+    val plot3 = new Plot
+    plot3.legend = true
+
+    val plot3Panel = new Panel {
+      override lazy val peer = plot3.panel
+      preferredSize = plotSize
+    }
 
     val logTable = new DefaultTableModel(Array[AnyRef]("Evaluation log"), 0)
 
@@ -166,9 +183,29 @@ object MainGUI extends SimpleSwingApplication {
       )
 
       add(
-        plotPanel,
+        plot1Panel,
         constraints(
           x = 2,
+          y = 0,
+          gridheight = 9,
+          anchor = Anchor.East,
+        ),
+      )
+
+      add(
+        plot2Panel,
+        constraints(
+          x = 3,
+          y = 0,
+          gridheight = 9,
+          anchor = Anchor.East,
+        ),
+      )
+
+      add(
+        plot3Panel,
+        constraints(
+          x = 4,
           y = 0,
           gridheight = 9,
           anchor = Anchor.East,
@@ -245,31 +282,38 @@ object MainGUI extends SimpleSwingApplication {
       val orig   = methodImplementation.originalModel.vectorG
       val approx = methodImplementation.vectorA(cFinal)
 
-      plot0 += plot(
+      val scale        = 10 // TODO: setting in ui.
+      val approxScaled = methodImplementation.vectorA(cFinal, scale)
+
+      val beta3scaled = methodImplementation.beta3Show(cFinal, scale)
+      val gScaled = methodImplementation.g(cFinal, scale)
+
+      plot1 += plot(
         x = parameters.vectorR,
         y = orig,
         style = '.',
         name = "beta_2",
       )
 
-      plot0 += plot(
-        x = parameters.vectorR,
-        y = approx,
+      plot1 += plot(
+        x = parameters.vectorRScaled(scale),
+        y = approxScaled,
         name = "beta_2 approximation",
       )
 
-      val distance = euclideanDistance(orig, approx)
-
-      report(
-        "Euclidean distance between original and approximate beta_2 = " +
-          BigDecimal(distance).setScale(4, BigDecimal.RoundingMode.HALF_UP).toString,
+      plot2 += plot(
+        x = parameters.vectorRScaled(scale),
+        y = beta3scaled,
+        name = "beta_3 approximation",
       )
 
-      val relativeErrors = orig.toArray.zip(approx.toArray).map { case (or, appr) =>
-        ((or - appr) * (or - appr)) / (or * or)
-      }
+      plot3 += plot(
+        x = parameters.vectorRScaled(scale),
+        y = gScaled,
+        name = "g approximation",
+      )
 
-      val averageRelativeError = relativeErrors.sum / relativeErrors.length
+      val averageRelativeError = euclideanDistance(orig, approx) / norm(orig)
 
       report(
         s"Average relative error = " +

@@ -8,6 +8,10 @@ case class AllParameters(modelParameters: ModelParameters, methodParameters: Met
   import modelParameters.d
   val vectorR: DenseVector[Double] =
     DenseVector.tabulate(rSamples)(i => 0.9 * d + 1.2 * d * i / rSamples)
+  def vectorRScaled(scale: Int): DenseVector[Double] = {
+    val samplesScaled = methodParameters.rSamples * scale
+    DenseVector.tabulate(samplesScaled)(i => 0.9 * d + 1.2 * d * i / samplesScaled)
+  }
 }
 
 object AllParameters {
